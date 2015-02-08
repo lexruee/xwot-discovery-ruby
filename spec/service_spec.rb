@@ -5,7 +5,7 @@ module XwotDiscovery
   describe Service do
 
     it "creates a discovery service" do
-      service = Service.new
+      service = Service.new(MockDiscoverStrategy.new)
 
     end
 
