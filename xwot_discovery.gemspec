@@ -8,9 +8,9 @@ Gem::Specification.new do |spec|
   spec.version       = XwotDiscovery::VERSION
   spec.authors       = ["Alexander Rueedlinger"]
   spec.email         = ["a.rueedlinger@gmail.com"]
-  spec.summary       = %q{TODO: Write a short summary. Required.}
-  spec.description   = %q{TODO: Write a longer description. Optional.}
-  spec.homepage      = ""
+  spec.summary       = %q{Discovery for the xWoT}
+  spec.description   = %q{Discovery for the xWoT}
+  spec.homepage      = "https://github.com/lexruee/xwot-discovery-ruby"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0")
