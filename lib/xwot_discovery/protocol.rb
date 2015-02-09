@@ -92,12 +92,13 @@ module XwotDiscovery
       init
       Thread.new do
         loop do
-          data = receive
-          if data
-            data.split(CRLN).each do |line|
-              p line
-              # TODO: parse data and create a message
-              @observer.dispatch(Message.new(method: 'alive')) if @observer
+          Thread.start(receive) do |data|
+            if data
+              data.split(CRLN).each do |line|
+                puts "#{Thread.current} - #{line}\n"
+                # TODO: parse data and create a message
+                @observer.dispatch(Message.new(method: 'alive')) if @observer
+              end
             end
           end
         end
@@ -118,7 +119,8 @@ module XwotDiscovery
       msg += "#{CRLN}"
       msg += "#{message.payload}#{CRLN}"
       msg += "#{CRLN}"
-      @socket.send(msg, FLAGS, MULTICAST_ADDR, PORT)
+      client_socket.send(msg, FLAGS, MULTICAST_ADDR, PORT)
+      client_socket.close
     end
 
     def receive
