@@ -9,7 +9,7 @@ module XwotDiscovery
   class MockListener < Listener
 
     def alive(message)
-      #p message
+      p message
       p 'alive method called'
     end
 

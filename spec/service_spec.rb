@@ -20,7 +20,6 @@ module XwotDiscovery
         @service.register(MockListener.new)
         @protocol.listen
         message = Message.new(method: 'alive',
-        host: '224.0.0.15:2015',
         content_type: 'application/json',
         payload: '{ "property": "value" }',
         location: 'http://10.0.0.26/test')

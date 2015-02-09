@@ -108,8 +108,9 @@ module XwotDiscovery
       payload = false
       lines.each_with_index do |line, index|
         if index == 0
-          method, _ = line.split(' ')
+          method, _, protocol = line.split(' ')
           msg_hash[:method] = method
+          msg_hash[:protocol] = protocol
         elsif payload
           msg_hash[:payload] ||= []
           msg_hash[:payload] << line
