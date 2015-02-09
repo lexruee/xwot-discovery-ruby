@@ -1,6 +1,13 @@
+require 'socket'
+require "ipaddr"
+
 require 'xwot_discovery/version'
+
+require 'xwot_discovery/message'
+require 'xwot_discovery/protocol'
+require 'xwot_discovery/listener'
 require 'xwot_discovery/service'
-require 'xwot_discovery/discover_strategy'
+
 
 module XwotDiscovery
   # Your code goes here...
