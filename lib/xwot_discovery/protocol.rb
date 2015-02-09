@@ -93,16 +93,36 @@ module XwotDiscovery
       Thread.new do
         loop do
           Thread.start(receive) do |data|
-            if data
-              data.split(CRLN).each do |line|
-                puts "#{Thread.current} - #{line}\n"
-                # TODO: parse data and create a message
-                @observer.dispatch(Message.new(method: 'alive')) if @observer
-              end
-            end
+            lines = data.split(CRLN)
+            msg_hash = parse(lines)
+            message = Message.new(msg_hash)
+            #puts "#{Thread.current} - #{msg_hash}\n"
+            @observer.dispatch(message)
           end
         end
       end
+    end
+
+    def parse(lines)
+      msg_hash = {}
+      payload = false
+      lines.each_with_index do |line, index|
+        if index == 0
+          method, _ = line.split(' ')
+          msg_hash[:method] = method
+        elsif payload
+          msg_hash[:payload] ||= []
+          msg_hash[:payload] << line
+        elsif !line.empty?
+          header_field, header_value = line.split(' ')
+          header_field = header_field[0...-1].downcase.tr('-','_').to_sym
+          msg_hash[header_field] = header_value
+        elsif line.empty?
+          payload = true
+        end
+      end
+      msg_hash[:payload] = msg_hash[:payload].join('')
+      msg_hash
     end
 
     def close
@@ -116,6 +136,7 @@ module XwotDiscovery
       msg += "#{message.method} * #{NAME}/#{VERSION}#{CRLN}"
       msg += "HOST: #{MULTICAST_ADDR}:#{PORT}#{CRLN}"
       msg += "LOCATION: #{message.location}#{CRLN}"
+      msg += "CONTENT-TYPE: #{message.content_type}#{CRLN}"
       msg += "#{CRLN}"
       msg += "#{message.payload}#{CRLN}"
       msg += "#{CRLN}"
@@ -124,12 +145,8 @@ module XwotDiscovery
     end
 
     def receive
-      if !@socket.nil?
-        data, _ = @socket.recvfrom(RECEIVE_MAX_BYTES)
-        data
-      else
-        nil
-      end
+      data, _ = @socket.recvfrom(RECEIVE_MAX_BYTES)
+      data
     end
 
     def notify_me(subject)
