@@ -30,7 +30,7 @@ module XwotDiscovery
 
   #
   # The MockProtocol implements a mock discovery protocol.
-  # It's used to the test main protocol logic of the service.
+  # It's used to test the main protocol logic of the service.
   #
   class MockProtocol < Protocol
 
@@ -67,7 +67,7 @@ module XwotDiscovery
 
 
   #
-  # The Xwot Protocol Discovery implements the protocol interface.
+  # Prototype: The Xwot Protocol Discovery implements the protocol interface.
   #
   class XwotProtocol < Protocol
 
@@ -104,13 +104,20 @@ module XwotDiscovery
     end
 
     def parse(lines)
-      msg_hash = {}
+      msg_hash = {
+        method: '',
+        protocol: '',
+        resource: '*',
+        payload: []
+      }
+
       payload = false
       lines.each_with_index do |line, index|
         if index == 0
-          method, _, protocol = line.split(' ')
+          method, resource, protocol = line.split(' ')
           msg_hash[:method] = method
           msg_hash[:protocol] = protocol
+          msg_hash[:resource] = resource
         elsif payload
           msg_hash[:payload] ||= []
           msg_hash[:payload] << line
@@ -133,13 +140,26 @@ module XwotDiscovery
     def send(message)
       client_socket = UDPSocket.open
       client_socket.setsockopt(:IPPROTO_IP, :IP_MULTICAST_TTL, TTL)
+
+      resource = if message.method == 'find' && message.resource.nil?
+        '*'
+      elsif message.method == 'find' && !message.resource.nil?
+        message.resource
+      else
+        '*'
+      end
+
       msg = ""
-      msg += "#{message.method} * #{NAME}/#{VERSION}#{CRLN}"
+      msg += "#{message.method} #{resource} #{NAME}/#{VERSION}#{CRLN}"
       msg += "HOST: #{MULTICAST_ADDR}:#{PORT}#{CRLN}"
-      msg += "LOCATION: #{message.location}#{CRLN}"
-      msg += "CONTENT-TYPE: #{message.content_type}#{CRLN}"
-      msg += "#{CRLN}"
-      msg += "#{message.payload}#{CRLN}"
+
+      if ['alive', 'bye', 'update'].include?(message.method)
+        msg += "LOCATION: #{message.location}#{CRLN}"
+        msg += "CONTENT-TYPE: #{message.content_type}#{CRLN}"
+        msg += "#{CRLN}"
+        msg += "#{message.payload}#{CRLN}"
+      end
+
       msg += "#{CRLN}"
       client_socket.send(msg, FLAGS, MULTICAST_ADDR, PORT)
       client_socket.close

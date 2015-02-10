@@ -2,10 +2,10 @@ require 'spec_helper'
 
 module XwotDiscovery
 
-  describe Service do
+  describe XwotServiceProtocol do
     before do
       @protocol =  XwotProtocol.new
-      @service = Service.new(@protocol)
+      @service = XwotServiceProtocol.new(@protocol)
     end
 
     describe "#start" do
@@ -24,7 +24,7 @@ module XwotDiscovery
         payload: '{ "property": "value" }',
         location: 'http://10.0.0.26/test')
         @protocol.send(message)
-        @protocol.send(message)
+        @service.find('/sensor')
         loop do
 
         end

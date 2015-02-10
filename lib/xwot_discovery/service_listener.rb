@@ -6,7 +6,7 @@ module XwotDiscovery
       raise 'not implemented!'
     end
 
-    def find(message)
+    def find(message, service = nil)
       raise 'not implemented!'
     end
 
@@ -20,6 +20,27 @@ module XwotDiscovery
 
   end
 
+
+  class BaseListener
+
+    def alive(message)
+      # do nothing
+    end
+
+    def find(message, service = nil)
+      # do nothing
+    end
+
+    def bye(message)
+      # do nothing
+    end
+
+    def update(message)
+      # do nothing
+    end
+
+  end
+
   class MockListener < ServiceListener
 
     def alive(message)
@@ -27,7 +48,7 @@ module XwotDiscovery
       p 'alive method called'
     end
 
-    def find(message)
+    def find(message, service)
       p message
       p 'find method called'
     end
