@@ -2,7 +2,7 @@ module XwotDiscovery
 
   class XwotService
 
-    ALIVE_INTERVAL_SECONDS = 5
+    ALIVE_INTERVAL_SECONDS = 60
 
     class ServiceProtocolListener < BaseListener
 
