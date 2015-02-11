@@ -21,7 +21,7 @@ module XwotDiscovery
   end
 
 
-  class BaseListener
+  class BaseListener < ServiceListener
 
     def alive(message)
       # do nothing
@@ -37,30 +37,6 @@ module XwotDiscovery
 
     def update(message)
       # do nothing
-    end
-
-  end
-
-  class MockListener < ServiceListener
-
-    def alive(message)
-      p message
-      p 'alive method called'
-    end
-
-    def find(message, service)
-      p message
-      p 'find method called'
-    end
-
-    def bye(message)
-      p message
-      p 'bye method called'
-    end
-
-    def update(message)
-      p message
-      p 'update method called'
     end
 
   end

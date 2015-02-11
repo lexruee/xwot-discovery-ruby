@@ -2,16 +2,7 @@ require 'spec_helper'
 
 module XwotDiscovery
 
-  class MyListener < BaseListener
-
-    def alive(message)
-      p 'alive received!!'
-      p message
-    end
-
-  end
-
-  describe XwotService do
+  describe XwotResource do
 
     before do
       @a_hash = {
@@ -29,19 +20,14 @@ module XwotDiscovery
           }
         }
       }
-      @resource =  XwotResource.new @a_hash
-      @protocol =  XwotProtocol.new
-      @service_protocol = XwotServiceProtocol.new(@protocol)
-      @service = XwotService.new @service_protocol
-      @service.register_listener(MyListener.new)
     end
 
-    it "#register_device" do
-      @service.register_resource(@resource)
-      @service.start
-      loop do
-
-      end
+    it ".new" do
+      res = XwotResource.new @a_hash
+      expect(res.urn).to_not be_nil
+      expect(res.location).to_not be_nil
+      expect(res.description).to_not be_nil
+      expect(res.interface).to_not be_nil
     end
 
   end

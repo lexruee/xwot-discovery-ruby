@@ -1,91 +1,100 @@
 module XwotDiscovery
 
-  class XwotServiceProtocol
+  class XwotService
 
-    class Registry
+    ALIVE_INTERVAL_SECONDS = 5
 
-      def initialize
-        @registry = {}
+    class ServiceProtocolListener < BaseListener
+
+      def initialize(service, resources)
+        @service = service
+        @resources = resources
       end
 
-      def add(message)
-        @registry[message.location] ||= {
-          uri: message.location,
-          message: message
-        }
+      def alive(message)
+        remove = []
+        @service.find_callbacks.each do |tuple|
+          urn, callback = tuple
+          if urn == message.urn
+            callback.call(message)
+            remove << tuple
+          end
+        end
+        @service.find_callbacks = @service.find_callbacks - remove
       end
 
-      def update(message)
-        @registry[message.location] = {
-          uri: message.location,
-          message: message
-        }
-      end
-
-      def remove(message)
-        @registry.delete(message.location)
+      def find(message, service)
+        if message.urn == '*'
+          @resources.each { |resource| @service.send_alive(resource) }
+        else
+          filtered = @resources.select { |resource| resource.urn == message.urn }
+          filtered.each { |resource| @service.send_alive(resource) }
+        end
       end
 
     end
 
-    def initialize(protocol)
-      @protocol = protocol
-      @listeners = []
+    attr_accessor :find_callbacks
+
+    def initialize(service_protocol)
+      @service_protocol = service_protocol
+      @resources = []
+      @rand = rand * 2 * 60
       @find_callbacks = []
-      @registry = Registry.new
-      @protocol.notify_me(self)
+      listener = ServiceProtocolListener.new(self, @resources)
+      @service_protocol.register_listener(listener)
     end
 
     def start
-      @protocol.listen
-    end
-
-    def shutdown
-      @protocol.close
-    end
-
-    def register(listener)
-      @listeners << listener
-    end
-
-    def unregister(listener)
-      @listeners.delete(listener)
-    end
-
-    def dispatch(message)
-      @listeners.each do |listener|
-        case message.method.downcase
-        when 'alive'
-          @registry.add(message)
-          listener.alive(message)
-        when 'update'
-          @registry.update(message)
-          listener.update(message)
-        when 'find'
-          listener.find(message, self)
-        when 'bye'
-          @registry.remove(message)
-          listener.bye(message)
-        else
-          # do nothing
+      @service_protocol.start
+      p @rand
+      Thread.new do
+        sleep @rand
+        loop do
+          @resources.each { |resource| send_alive(resource) }
+          sleep ALIVE_INTERVAL_SECONDS
         end
       end
     end
 
-    def find(resource = '')
-      resource_str = case resource.to_s
-      when 'all'
-        '*'
-      when ''
-        '*'
-      else
-        resource
+    def find(urn = '*', &block)
+      if block_given?
+        @find_callbacks << [urn, block]
       end
-      # TODO: registry lookup
-      @protocol.send(Message.new({
-        method: 'find',
-        resource: resource_str
-      }))
+      @service_protocol.find(urn)
+    end
+
+    def register_resource(resource)
+      @resources << resource
+      send_alive(resource)
+    end
+
+    def unregister_resource(resource)
+      @resources.delete(resource)
+      send_bye(resource)
+    end
+
+    def register_listener(listener)
+      @service_protocol.register_listener(listener)
+    end
+
+    def unregister_listener(listener)
+      @service_protocol.unregister_listener(listener)
+    end
+
+
+    def send_alive(resource)
+      2.times do
+        @service_protocol.alive(resource)
+        sleep 0.5
+      end
+    end
+
+    def send_bye(resource)
+      2.times do
+        @service_protocol.bye(resource)
+        sleep 0.5
+      end
     end
 
   end

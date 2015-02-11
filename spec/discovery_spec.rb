@@ -9,9 +9,14 @@ module XwotDiscovery
       p message
     end
 
+    def find(message, service)
+      p 'find received!!'
+      p message
+    end
+
   end
 
-  describe XwotService do
+  describe "XwotDiscovery.service" do
 
     before do
       @a_hash = {
@@ -30,18 +35,25 @@ module XwotDiscovery
         }
       }
       @resource =  XwotResource.new @a_hash
-      @protocol =  XwotProtocol.new
-      @service_protocol = XwotServiceProtocol.new(@protocol)
-      @service = XwotService.new @service_protocol
-      @service.register_listener(MyListener.new)
+      s = XwotDiscovery.service
+      s.register_listener(MyListener.new)
     end
 
     it "#register_device" do
-      @service.register_resource(@resource)
-      @service.start
-      loop do
+      s = XwotDiscovery.service
+      s.register_resource(@resource)
+      #sleep 120 * 2
+    end
 
+    it "#find" do
+      s = XwotDiscovery.service
+      s.find 'urn:xwot:temperature-sensor'
+      s.find
+
+      s.find 'urn:xwot:temperature-sensor' do |message|
+        p 'callback!!'
       end
+      sleep 120 * 2
     end
 
   end

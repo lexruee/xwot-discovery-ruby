@@ -27,45 +27,6 @@ module XwotDiscovery
 
   end
 
-
-  #
-  # The MockProtocol implements a mock discovery protocol.
-  # It's used to test the main protocol logic of the service.
-  #
-  class MockProtocol < Protocol
-
-    def listen
-      p 'listen'
-      receive
-    end
-
-    def close
-      p 'close'
-    end
-
-    def send(message)
-      p 'send'
-      p message
-    end
-
-    def receive
-      p 'receive'
-      message = Message.new(method: 'alive',
-        host: '224.0.0.15:2015',
-        content_type: 'application/json',
-        payload: '{ "property": "value" }',
-        location: 'http://10.0.0.26/test')
-      @observer.dispatch(message)
-    end
-
-    def notify_me(subject)
-      p 'notify_me called'
-      @observer = subject
-    end
-
-  end
-
-
   #
   # Prototype: The Xwot Protocol Discovery implements the protocol interface.
   #
@@ -107,17 +68,17 @@ module XwotDiscovery
       msg_hash = {
         method: '',
         protocol: '',
-        resource: '*',
+        urn: '*',
         payload: []
       }
 
       payload = false
       lines.each_with_index do |line, index|
         if index == 0
-          method, resource, protocol = line.split(' ')
+          method, urn, protocol = line.split(' ')
           msg_hash[:method] = method
           msg_hash[:protocol] = protocol
-          msg_hash[:resource] = resource
+          msg_hash[:urn] = urn
         elsif payload
           msg_hash[:payload] ||= []
           msg_hash[:payload] << line
@@ -141,17 +102,16 @@ module XwotDiscovery
       client_socket = UDPSocket.open
       client_socket.setsockopt(:IPPROTO_IP, :IP_MULTICAST_TTL, TTL)
 
-      resource = if message.method == 'find' && message.resource.nil?
+      urn = if message.urn.nil?
         '*'
-      elsif message.method == 'find' && !message.resource.nil?
-        message.resource
       else
-        '*'
+        message.urn
       end
 
       msg = ""
-      msg += "#{message.method} #{resource} #{NAME}/#{VERSION}#{CRLN}"
+      msg += "#{message.method} #{urn} #{NAME}/#{VERSION}#{CRLN}"
       msg += "HOST: #{MULTICAST_ADDR}:#{PORT}#{CRLN}"
+      msg += "HOSTNAME: #{Socket.gethostname}#{CRLN}"
 
       if ['alive', 'bye', 'update'].include?(message.method)
         msg += "LOCATION: #{message.location}#{CRLN}"
