@@ -47,7 +47,7 @@ module XwotDiscovery
 
     def start
       @service_protocol.start
-      p @rand
+      #p @rand
       Thread.new do
         sleep @rand
         loop do

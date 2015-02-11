@@ -85,7 +85,7 @@ module XwotDiscovery
       message = Message.new({
         method: 'find',
         urn: urn_str})
-      p message
+      #p message
       @protocol.send(message)
     end
 

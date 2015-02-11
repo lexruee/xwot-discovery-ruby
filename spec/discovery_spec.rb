@@ -5,13 +5,13 @@ module XwotDiscovery
   class MyListener < BaseListener
 
     def alive(message)
-      p 'alive received!!'
-      p message
+      #p 'alive received!!'
+      #p message
     end
 
     def find(message, service)
-      p 'find received!!'
-      p message
+      #p 'find received!!'
+      #p message
     end
 
   end
@@ -52,6 +52,7 @@ module XwotDiscovery
 
       s.find 'urn:xwot:temperature-sensor' do |message|
         p 'callback!!'
+        p message.urn
       end
       sleep 120 * 2
     end
